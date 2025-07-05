@@ -128,8 +128,7 @@ body {
     width: 100%;
     position: relative;
     background-color: #ffffff;
-    min-height: 15vh;
-    padding: 20px;
+    padding: 20px 20px 20px 0;
     position: relative;
 }
 

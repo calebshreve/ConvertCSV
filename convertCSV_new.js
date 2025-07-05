@@ -63,12 +63,14 @@ function generatePrintTable() {
     // Get the mapping from the input fields
     const mapping = getColumnMapping();
     
-    // Generate the table HTML
-    const tableHTML = createTableFromCSV(mapping);
+    // Generate the table HTML and store the data for export
+    const result = createTableFromCSV(mapping);
+    window.generatedTableData = result.tableData; // Store for export
+    const tableHTML = result.html;
     
-    // Display the table in the print container
+    // Display the table in the print container with export button
     const printContainer = document.querySelector('.print-container');
-    printContainer.innerHTML = '<div style="padding: 20px;"><h2 style="margin-bottom: 20px; color: #333;">Generated Table</h2>' + tableHTML + '</div>';
+    printContainer.innerHTML = '<div style="padding: 20px;"><h2 style="margin-bottom: 20px; color: #333;">Generated Table</h2>' + tableHTML + '<div style="margin-top: 20px; text-align: center;"><button onclick="exportTableToCSV()" style="padding: 12px 24px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold;">Export to CSV</button></div></div>';
     
     console.log('Print table generated successfully');
 }
@@ -116,6 +118,9 @@ function createTableFromCSV(mapping) {
     }
     
     tableHTML += '</tr></thead><tbody>';
+    
+    // Initialize array to store all table rows for export
+    window.processedTableData = [];
     
     // Process each row of CSV data
     for (let rowIndex = 0; rowIndex < window.csvData.length; rowIndex++) {
@@ -269,6 +274,9 @@ function createTableFromCSV(mapping) {
                 console.log('=== CREATING ROW ' + (i + 1) + ' OF ' + maxRows + ' ===');
                 tableHTML += '<tr>';
                 
+                // Create row data object for export
+                const rowData = {};
+                
                 // Generate each column using the collected data
                 for (let j = 0; j < headers.length; j++) {
                     const header = headers[j];
@@ -279,11 +287,16 @@ function createTableFromCSV(mapping) {
                     if ((header === 'Name' || header === 'Songtitle') && i > 0) {
                         console.log('  Row ' + (i + 1) + ' - ' + header + ': BLANK (not first row)');
                         tableHTML += '<td style="border: 1px solid #dee2e6; padding: 8px;"></td>';
+                        rowData[header] = ''; // Empty for export
                     } else {
                         console.log('  Row ' + (i + 1) + ' - ' + header + ': "' + data + '" (adding to HTML)');
                         tableHTML += '<td style="border: 1px solid #dee2e6; padding: 8px;">' + data + '</td>';
+                        rowData[header] = data; // Store for export
                     }
                 }
+                
+                // Add row data to export array
+                window.processedTableData.push(rowData);
                 
                 console.log('=== FINISHED ROW ' + (i + 1) + ' ===');
                 tableHTML += '</tr>';
@@ -303,6 +316,9 @@ function createTableFromCSV(mapping) {
                 }
             }
             
+            // Create row data object for export
+            const rowData = {};
+            
             tableHTML += '<tr>';
             
             for (let j = 0; j < headers.length; j++) {
@@ -310,7 +326,11 @@ function createTableFromCSV(mapping) {
                 const data = tableData[header][0] || '';
                 console.log('  ' + header + ': "' + data + '"');
                 tableHTML += '<td style="border: 1px solid #dee2e6; padding: 8px;">' + data + '</td>';
+                rowData[header] = data; // Store for export
             }
+            
+            // Add row data to export array
+            window.processedTableData.push(rowData);
             
             tableHTML += '</tr>';
         }
@@ -319,7 +339,11 @@ function createTableFromCSV(mapping) {
     
     tableHTML += '</tbody></table>';
     
-    return tableHTML;
+    // Return both HTML and the processed table data for export
+    return {
+        html: tableHTML,
+        tableData: window.processedTableData || []
+    };
 }
 
 // Parse CSV data and store it globally
@@ -462,47 +486,49 @@ function uploadAndInspect() {
     reader.readAsText(file);
 }
 
-// Test function to debug mapping
-function testMapping() {
-    console.log('=== TESTING MAPPING ===');
-    const inputs = document.querySelectorAll('.inspect-one-container input, .inspect-two-container input, .inspect-three-container input, .inspect-four-container input');
-    console.log('Total inputs found:', inputs.length);
+
+
+// Export table data to CSV
+function exportTableToCSV() {
+    console.log('exportTableToCSV function called');
     
-    inputs.forEach((input, index) => {
-        const value = parseInt(input.value);
-        console.log('Input ' + index + ': value = ' + value);
-    });
-    
-    const mapping = getColumnMapping();
-    console.log('Final mapping:', mapping);
-    
-    // Check what mappings are missing
-    const requiredMappings = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    const missingMappings = [];
-    for (let i = 0; i < requiredMappings.length; i++) {
-        if (!mapping[requiredMappings[i]]) {
-            missingMappings.push(requiredMappings[i]);
-        }
+    if (!window.generatedTableData || window.generatedTableData.length === 0) {
+        alert('No table data available for export. Please generate a table first!');
+        return;
     }
-    console.log('Missing mappings:', missingMappings);
     
-    if (window.csvData && window.csvData.length > 1) {
-        console.log('First data row:', window.csvData[1]);
-        console.log('Headers:', window.csvHeaders);
-        
-        // Show what's in the first few columns that might contain data
-        console.log('Sample data from first row:');
-        for (let i = 0; i < Math.min(10, window.csvData[1].length); i++) {
-            console.log('Column ' + i + ': "' + window.csvData[1][i] + '"');
-        }
-        
-        // Show all columns with data
-        console.log('All columns with data:');
-        for (let i = 0; i < window.csvData[1].length; i++) {
-            const value = window.csvData[1][i];
-            if (value && value.trim() !== '') {
-                console.log('Column ' + i + ': "' + value + '"');
+    const headers = ['Name', 'Songtitle', 'Writer', 'Writer IPI', 'Writer Split', 'Publisher', 'Publisher IPI', 'Publisher Split', 'Notes'];
+    
+    // Create CSV content
+    let csvContent = headers.join(',') + '\n';
+    
+    // Add each row of data
+    for (let i = 0; i < window.generatedTableData.length; i++) {
+        const row = window.generatedTableData[i];
+        const csvRow = headers.map(header => {
+            const value = row[header] || '';
+            // Escape quotes and wrap in quotes if contains comma or quote
+            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                return '"' + value.replace(/"/g, '""') + '"';
             }
-        }
+            return value;
+        });
+        csvContent += csvRow.join(',') + '\n';
     }
+    
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'converted_table.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    console.log('CSV export completed');
 } 
