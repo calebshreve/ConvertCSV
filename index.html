@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConvertCSV</title>
+    <link rel="stylesheet" href="convertCSV.css">
+</head>
+<body>
+    <div class="sidebar">
+        <!-- Sidebar content will go here -->
+    </div>
+    
+    <div class="main-container">
+        <div class="header-container">
+            <h1>Welcome to ConvertCSV</h1>
+        </div>
+        <div class="input-container">
+            <div style="padding: 20px;">
+                <label for="csvFile" style="display: block; margin-bottom: 10px; font-weight: bold;">Import CSV Here:</label>
+                <input type="text" id="filePath" placeholder="No file selected" readonly style="width: 60%; padding: 8px; margin-right: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                <input type="file" id="csvFile" accept=".csv" style="display: none;">
+                <button onclick="document.getElementById('csvFile').click()" style="padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">Select CSV File</button>
+                <button onclick="clearSelection()" style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Clear Selection</button>
+                <br><br>
+                <button onclick="uploadAndInspect()" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Upload</button>
+            </div>
+        </div>
+        <div class="inspect-container">
+            <div class="inspect-one-container">
+                <!-- First 3 headers will go here -->
+            </div>
+            <div class="inspect-two-container">
+                <!-- Next 5 headers will go here -->
+            </div>
+            <div class="inspect-three-container">
+                <!-- Next 5 headers will go here -->
+            </div>
+            <div class="inspect-four-container">
+                <!-- Next 5 headers will go here -->
+            </div>
+        </div>
+        <div class="mapping-container">
+            <ol style="list-style-type: decimal; padding-left: 20px; line-height: 1.6;">
+                <li>Name</li>
+                <li>Songtitle</li>
+                <li>Writer</li>
+                <li>Writer IPI</li>
+                <li>Writer Split</li>
+                <li>Publisher</li>
+                <li>Publisher IPI</li>
+                <li>Publisher Split</li>
+                <li>Notes</li>
+            </ol>
+            <div style="margin-top: 20px; text-align: center;">
+                <button onclick="generatePrintTable()" style="padding: 12px 24px; background-color: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; margin-right: 10px;">Generate Print Table</button>
+                <button onclick="testMapping()" style="padding: 12px 24px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold;">Test Mapping</button>
+            </div>
+        </div>
+        <div class="print-container">
+            <!-- Print content will go here -->
+        </div>
+    </div>
+    <script src="convertCSV_new.js"></script>
+</body>
+</html> 
